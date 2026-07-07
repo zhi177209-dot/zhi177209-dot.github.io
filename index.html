@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="个人项目博客首页，展示项目看板与个人介绍，适合后续继续扩展更多项目页面。">
+    <title>Personal Project Blog | Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-noise"></div>
+    <div class="page-grid"></div>
+
+    <header class="site-header">
+        <a class="brand" href="index.html#home">
+            <span class="brand-mark"></span>
+            <span class="brand-text">
+                <strong>HYGRO//LAB</strong>
+                <small>Static Cyber Portfolio</small>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="主导航">
+            <a href="index.html#home">首页/项目看板</a>
+            <a href="index.html#about">关于我</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="home-hero section-shell" id="home">
+            <div class="panel home-hero-panel">
+                <p class="eyebrow">PERSONAL PROJECT MATRIX</p>
+                <h1>个人项目展示看板</h1>
+                <p class="hero-text">
+                    首页现在只负责展示项目入口与个人介绍，项目详情统一拆分到独立页面。
+                    这样后续新增更多作品时，你只需要继续复制项目卡片并链接到新的详情页，
+                    整体结构会更清晰，也更适合 GitHub Pages 静态托管。
+                </p>
+
+                <div class="hero-tags">
+                    <span>Modular Pages</span>
+                    <span>Cyber Portfolio</span>
+                    <span>Pure HTML / CSS</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-shell board-section">
+            <div class="section-heading">
+                <p class="eyebrow">HOME / PROJECT BOARD</p>
+                <h2>项目展示看板</h2>
+                <p>当前挂载 1 个项目，后续继续复制卡片模块并链接到新的项目详情页即可。</p>
+            </div>
+
+            <div class="project-board multi-board">
+                <a class="project-card" href="project-workspace-climate.html">
+                    <span class="card-badge">ACTIVE PROJECT</span>
+                    <h3>工作区温湿度检测系统</h3>
+                    <p>
+                        基于 SHT21 温湿度采集、数码管/OLED 双显示、湿度阈值控制、
+                        电机联动与蜂鸣器告警的一体化嵌入式仿真项目。
+                    </p>
+
+                    <ul class="card-meta">
+                        <li>Sensor: SHT21</li>
+                        <li>Control: Threshold Logic</li>
+                        <li>Display: LED + OLED</li>
+                    </ul>
+
+                    <span class="card-link">OPEN PROJECT PAGE</span>
+                </a>
+
+                <article class="project-card project-card-placeholder">
+                    <span class="card-badge">NEXT SLOT</span>
+                    <h3>下一个项目位</h3>
+                    <p>
+                        这里可以继续添加新的课程设计、嵌入式系统、前端页面、
+                        数据可视化或其他作品，并单独拆分成新的详情页。
+                    </p>
+
+                    <ul class="card-meta">
+                        <li>New Project</li>
+                        <li>Independent Page</li>
+                        <li>Easy Scaling</li>
+                    </ul>
+
+                    <span class="card-link">ADD NEW MODULE</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="about">
+            <div class="section-heading">
+                <p class="eyebrow">ABOUT THE MAKER</p>
+                <h2>关于我</h2>
+                <p>首页保留个人介绍区，用于概括你的技术方向、项目风格和作品集定位。</p>
+            </div>
+
+            <div class="about-layout">
+                <article class="about-card panel">
+                    <p>
+                        你好，我是一名专注于嵌入式开发、数字系统设计与项目展示表达的创作者。
+                        我希望把偏工程向的硬件与单片机项目，整理成既有技术说明力、
+                        又有视觉完成度的个人作品页面。
+                    </p>
+                    <p>
+                        这个博客会持续收录我的课程设计、实验项目、系统原型与交互式展示页面，
+                        并通过独立详情页的方式，保持每个项目都能被清楚拆解和单独阅读。
+                    </p>
+                </article>
+
+                <div class="about-side-grid">
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">01</span>
+                        <h3>Focus</h3>
+                        <p>嵌入式系统、传感检测、控制逻辑、界面展示。</p>
+                    </article>
+
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">02</span>
+                        <h3>Workflow</h3>
+                        <p>本地开发、仿真验证、静态展示、模块化扩展。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>PERSONAL PROJECT BLOG / HOME BOARD EDITION</p>
+    </footer>
+</body>
+</html>

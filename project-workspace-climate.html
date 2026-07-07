@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="工作区温湿度检测系统项目详情页，展示项目简介、仿真演示与核心代码。">
+    <title>Workspace Climate Monitor | Project Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-noise"></div>
+    <div class="page-grid"></div>
+
+    <header class="site-header">
+        <a class="brand" href="index.html#home">
+            <span class="brand-mark"></span>
+            <span class="brand-text">
+                <strong>HYGRO//LAB</strong>
+                <small>Project Detail Node</small>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="项目详情导航">
+            <a href="index.html#home">返回首页</a>
+            <a href="#project-intro">项目简介</a>
+            <a href="#simulation">仿真演示</a>
+            <a href="#code-showcase">核心代码</a>
+            <a href="index.html#about">关于我</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero section-shell" id="project-top">
+            <div class="hero-copy panel">
+                <p class="eyebrow">DIGITAL CLIMATE NODE / 01</p>
+                <h1>工作区温湿度检测系统</h1>
+                <p class="hero-text">
+                    这是当前项目的独立详情页，聚焦展示环境检测、阈值控制、
+                    显示联动与 Protues 仿真结果。后续如果你继续增加新项目，
+                    只需要复用这个详情页结构，再替换对应内容即可。
+                </p>
+
+                <div class="hero-tags">
+                    <span>STC15 MCU</span>
+                    <span>SHT21 Sensor</span>
+                    <span>OLED + 8-DIG LED</span>
+                    <span>Threshold Control</span>
+                </div>
+
+                <div class="hero-actions">
+                    <a class="primary-link" href="#project-intro">ENTER PROJECT</a>
+                    <a class="secondary-link" href="#simulation">VIEW SIMULATION</a>
+                </div>
+            </div>
+
+            <aside class="telemetry-stack">
+                <div class="panel live-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">SYSTEM STATE</span>
+                        <span class="panel-code">NODE-ALPHA</span>
+                    </div>
+
+                    <div class="live-chip">
+                        <span class="live-dot"></span>
+                        <span>LIVE SENSING</span>
+                    </div>
+
+                    <ul class="signal-list">
+                        <li><span>Sample Cycle</span><strong>1000 ms</strong></li>
+                        <li><span>Humidity Threshold</span><strong>70.0%</strong></li>
+                        <li><span>Alarm Trigger</span><strong>35.0°C</strong></li>
+                    </ul>
+                </div>
+
+                <div class="telemetry-grid">
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">TEMP DIAL</span>
+                            <span class="panel-code">24.5°C</span>
+                        </div>
+
+                        <div class="gauge">
+                            <div class="gauge-arc"></div>
+                            <div class="gauge-cutout"></div>
+                            <div class="gauge-needle"></div>
+                            <div class="gauge-core"></div>
+
+                            <div class="gauge-ticks" aria-hidden="true">
+                                <span style="--tick:0"></span>
+                                <span style="--tick:1"></span>
+                                <span style="--tick:2"></span>
+                                <span style="--tick:3"></span>
+                                <span style="--tick:4"></span>
+                                <span style="--tick:5"></span>
+                                <span style="--tick:6"></span>
+                                <span style="--tick:7"></span>
+                                <span style="--tick:8"></span>
+                                <span style="--tick:9"></span>
+                                <span style="--tick:10"></span>
+                            </div>
+
+                            <div class="gauge-label gauge-left">0°C</div>
+                            <div class="gauge-label gauge-center">24.5°C</div>
+                            <div class="gauge-label gauge-right">50°C</div>
+                        </div>
+                    </article>
+
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">HUMIDITY CORE</span>
+                            <span class="panel-code">65%</span>
+                        </div>
+
+                        <div class="water-ball">
+                            <div class="water-fill">
+                                <span class="wave wave-a"></span>
+                                <span class="wave wave-b"></span>
+                                <span class="wave wave-c"></span>
+                            </div>
+                            <div class="water-content">
+                                <strong>65%</strong>
+                                <span>Relative Humidity</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section-shell" id="project-intro">
+            <div class="section-heading">
+                <p class="eyebrow">PROJECT OVERVIEW</p>
+                <h2>项目简介</h2>
+                <p>
+                    本系统面向工作区环境感知场景，通过 SHT21 采集温湿度数据，
+                    再由主控完成阈值判断、显示刷新与执行器联动，适合作为嵌入式课程设计、
+                    智能环境监测与个人作品集展示项目。
+                </p>
+            </div>
+
+            <div class="intro-layout">
+                <article class="panel intro-copy">
+                    <h3>系统说明</h3>
+                    <p>
+                        本地工程采用定时任务调度结构，将传感采样、数码管显示、按键阈值调节、
+                        电机控制与蜂鸣器告警拆分为独立任务模块。网页端则将这些功能以科技风面板重新可视化，
+                        方便你在 GitHub Pages 上集中展示作品的架构与亮点。
+                    </p>
+                    <p>
+                        这类详情页适合按“项目简介 - 仿真演示 - 核心代码”的方式复用，
+                        所以后续每个项目都可以保持一致的阅读体验。
+                    </p>
+                </article>
+
+                <div class="architecture-grid">
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">01</span>
+                        <h3>Sensor Input</h3>
+                        <p>SHT21 通过 IIC 完成湿度与温度采样，周期测量并缓存到全局变量。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">02</span>
+                        <h3>Display Pipeline</h3>
+                        <p>数码管负责快速直读，OLED 负责温度、湿度与阈值的结构化展示。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">03</span>
+                        <h3>Threshold Control</h3>
+                        <p>按键支持湿度阈值上下调节，电机依据阈值比较结果自动启停。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">04</span>
+                        <h3>Alarm Output</h3>
+                        <p>当温度超过预设告警线时，蜂鸣器立即触发，形成环境异常提示。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-shell" id="simulation">
+            <div class="section-heading">
+                <p class="eyebrow">PROTEUS VISUALIZATION</p>
+                <h2>仿真演示</h2>
+                <p>这里保留项目专属的大图展示区，便于你后续替换为新的仿真截图、实验照片或录屏封面。</p>
+            </div>
+
+            <div class="simulation-layout">
+                <figure class="panel simulation-frame">
+                    <img src="assets/workspace-simulation.png" alt="工作区温湿度检测系统 Protues 仿真截图">
+                    <figcaption>Protues 仿真工程截图，展示数码管、OLED、按键矩阵、蜂鸣器与执行模块联动。</figcaption>
+                </figure>
+
+                <aside class="panel simulation-aside">
+                    <div class="panel-head">
+                        <span class="panel-title">SIM CONTROL</span>
+                        <span class="panel-code">READY</span>
+                    </div>
+
+                    <p>
+                        这里适合放置你对仿真运行流程的补充说明，例如传感器输入变化、
+                        数码管显示策略、阈值变化效果，以及电机/蜂鸣器的响应逻辑。
+                    </p>
+
+                    <ul class="simulation-points">
+                        <li>OLED 显示当前温度、湿度与阈值</li>
+                        <li>数码管双区显示温度与湿度数据</li>
+                        <li>按键支持阈值修正与实验交互</li>
+                    </ul>
+
+                    <a class="sim-button" href="assets/workspace-simulation.png" target="_blank" rel="noreferrer">
+                        <span>RUN SIMULATION</span>
+                    </a>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section-shell" id="code-showcase">
+            <div class="section-heading">
+                <p class="eyebrow">CORE SOURCE</p>
+                <h2>核心代码</h2>
+                <p>代码窗口参考 VS Code / Linux 终端风格，下面内容已结合你本地工程的核心逻辑整理展示。</p>
+            </div>
+
+            <div class="code-grid">
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">USER/Main.c</span>
+                    </div>
+                    <pre><code><span class="token preprocessor">#include</span> <span class="token string">"SHT21.h"</span>
+<span class="token preprocessor">#include</span> <span class="token string">"Control.h"</span>
+<span class="token preprocessor">#include</span> <span class="token string">"oled.h"</span>
+
+<span class="token type">void</span> <span class="token function">Task_100ms</span>(<span class="token type">void</span>)
+{
+    <span class="token function">SHT21_Task</span>();      <span class="token comment">// 获取温度和湿度</span>
+    <span class="token function">Display_Task</span>();    <span class="token comment">// 数码管刷新</span>
+    <span class="token function">Motor_Task</span>();      <span class="token comment">// 湿度阈值联动</span>
+    <span class="token function">Key_Task</span>();        <span class="token comment">// 按键调节阈值</span>
+    <span class="token function">Buzzer_Task</span>();     <span class="token comment">// 超温蜂鸣器报警</span>
+}
+
+<span class="token type">void</span> <span class="token function">Task_1000ms</span>(<span class="token type">void</span>)
+{
+    <span class="token function">show_temp</span>(Temperture_SHT21, <span class="token number">0</span>);
+    <span class="token function">show_temp</span>(Humidity_SHT21, <span class="token number">2</span>);
+    <span class="token function">show_temp</span>(Humidity_Set, <span class="token number">4</span>);
+}</code></pre>
+                </article>
+
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">USER/SHT21.c + USER/Motor.c</span>
+                    </div>
+                    <pre><code><span class="token type">void</span> <span class="token function">SHT21_Task</span>(<span class="token type">void</span>)
+{
+    <span class="token keyword">static</span> <span class="token type">uint8_t</span> state = <span class="token number">0</span>;
+    <span class="token keyword">if</span> (++time &gt;= <span class="token number">10</span>) {
+        time = <span class="token number">0</span>;
+        <span class="token keyword">switch</span> (state) {
+            <span class="token keyword">case</span> <span class="token number">0</span>: <span class="token comment">// 启动湿度测量</span>
+            <span class="token keyword">case</span> <span class="token number">2</span>: <span class="token comment">// 启动温度测量</span>
+            <span class="token keyword">case</span> <span class="token number">4</span>: <span class="token comment">// 等待下一次周期</span>
+        }
+    }
+}
+
+<span class="token type">void</span> <span class="token function">Motor_Task</span>(<span class="token type">void</span>)
+{
+    <span class="token keyword">if</span> (Humidity_SHT21 &gt; Humidity_Set) {
+        <span class="token function">Motor_Forward</span>();
+    } <span class="token keyword">else</span> {
+        <span class="token function">Motor_Stop</span>();
+    }
+}</code></pre>
+                </article>
+
+                <article class="code-window wide">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">USER/DisplayTask.c + USER/Buzzer.c</span>
+                    </div>
+                    <pre><code><span class="token type">void</span> <span class="token function">Display_Task</span>(<span class="token type">void</span>)
+{
+    temp = Temperture_SHT21;   <span class="token comment">// 300 -&gt; 30.0</span>
+    humi = Humidity_SHT21;     <span class="token comment">// 805 -&gt; 80.5</span>
+
+    DisBuf[<span class="token number">7</span>] = temp / <span class="token number">100</span> % <span class="token number">10</span>;
+    DisBuf[<span class="token number">6</span>] = temp / <span class="token number">10</span> % <span class="token number">10</span>;
+    DisBuf[<span class="token number">5</span>] = temp % <span class="token number">10</span>;
+    DisBuf[<span class="token number">4</span>] = <span class="token number">23</span>;
+
+    DisBuf[<span class="token number">3</span>] = humi / <span class="token number">100</span> % <span class="token number">10</span>;
+    DisBuf[<span class="token number">2</span>] = humi / <span class="token number">10</span> % <span class="token number">10</span>;
+    DisBuf[<span class="token number">1</span>] = humi % <span class="token number">10</span>;
+    Point = <span class="token number">0x44</span>;
+}
+
+<span class="token type">void</span> <span class="token function">Buzzer_Task</span>(<span class="token type">void</span>)
+{
+    <span class="token keyword">if</span> (Temperture_SHT21 &gt; <span class="token number">350</span>) {
+        BEEP = <span class="token number">0</span>;
+    } <span class="token keyword">else</span> {
+        BEEP = <span class="token number">1</span>;
+    }
+}</code></pre>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>WORKSPACE CLIMATE MONITOR / DETAIL PAGE</p>
+    </footer>
+</body>
+</html>
