@@ -8,11 +8,21 @@ SHT21/Objects/
 SHT21/Listings/
 SHT21/Project Backups/
 *.obj
+*.o
+*.d
+*.crf
+*.axf
+*.dep
+*.map
 *.hex
 *.lnp
 *.m51
 *.lst
 *.build_log.htm
+**/MDK-ARM/**/*.htm
+**/MDK-ARM/**/*.sct
+*.uvguix.*
+~$*.docx
 
 # Local workspace noise
 *.log

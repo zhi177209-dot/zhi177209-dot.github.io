@@ -25,6 +25,7 @@
 
         <nav class="site-nav" aria-label="主导航">
             <a href="index.html#home">首页/项目看板</a>
+            <a href="small-projects.html#small-projects-board">小项目看板</a>
             <a href="index.html#about">关于我</a>
         </nav>
     </header>
@@ -35,24 +36,30 @@
                 <p class="eyebrow">PERSONAL PROJECT MATRIX</p>
                 <h1>个人项目展示看板</h1>
                 <p class="hero-text">
-                    首页现在只负责展示项目入口与个人介绍，项目详情统一拆分到独立页面。
-                    这样后续新增更多作品时，你只需要继续复制项目卡片并链接到新的详情页，
-                    整体结构会更清晰，也更适合 GitHub Pages 静态托管。
+                    首页现在主要负责展示大项目入口与个人介绍，小的练习项目会单独归档到新的看板页面。
+                    这样后续新增作品时，大项目和小练习可以分开展示，结构会更清晰，
+                    也更适合继续做静态化扩展。
                 </p>
 
                 <div class="hero-tags">
-                    <span>Modular Pages</span>
+                    <span>Large Projects</span>
+                    <span>Small Practice Board</span>
                     <span>Cyber Portfolio</span>
                     <span>Pure HTML / CSS</span>
+                </div>
+
+                <div class="hero-actions">
+                    <a class="primary-link" href="#large-projects">ENTER LARGE BOARD</a>
+                    <a class="secondary-link" href="small-projects.html#small-projects-board">OPEN SMALL PROJECTS</a>
                 </div>
             </div>
         </section>
 
-        <section class="section-shell board-section">
+        <section class="section-shell board-section" id="large-projects">
             <div class="section-heading">
-                <p class="eyebrow">HOME / PROJECT BOARD</p>
-                <h2>项目展示看板</h2>
-                <p>当前挂载 1 个项目，后续继续复制卡片模块并链接到新的项目详情页即可。</p>
+                <p class="eyebrow">HOME / LARGE PROJECT BOARD</p>
+                <h2>大项目展示看板</h2>
+                <p>当前挂载 1 个大项目，小型练习作品会单独整理到小项目看板页面。</p>
             </div>
 
             <div class="project-board multi-board">
@@ -75,16 +82,16 @@
 
                 <article class="project-card project-card-placeholder">
                     <span class="card-badge">NEXT SLOT</span>
-                    <h3>下一个项目位</h3>
+                    <h3>下一个大项目位</h3>
                     <p>
-                        这里可以继续添加新的课程设计、嵌入式系统、前端页面、
-                        数据可视化或其他作品，并单独拆分成新的详情页。
+                        这里继续保留给新的完整项目，例如课程设计、系统原型、
+                        嵌入式整机方案或篇幅更完整的展示页。
                     </p>
 
                     <ul class="card-meta">
-                        <li>New Project</li>
+                        <li>Large Project</li>
                         <li>Independent Page</li>
-                        <li>Easy Scaling</li>
+                        <li>Scalable Archive</li>
                     </ul>
 
                     <span class="card-link">ADD NEW MODULE</span>

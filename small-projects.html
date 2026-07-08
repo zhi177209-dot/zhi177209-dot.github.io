@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="小项目展示看板，用于归档练习项目、轻量实验和快速原型。">
+    <title>Personal Project Blog | Small Projects</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-noise"></div>
+    <div class="page-grid"></div>
+
+    <header class="site-header">
+        <a class="brand" href="index.html#home">
+            <span class="brand-mark"></span>
+            <span class="brand-text">
+                <strong>HYGRO//LAB</strong>
+                <small>Small Project Board</small>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="小项目导航">
+            <a href="index.html#home">返回大项目首页</a>
+            <a href="#small-projects-board">小项目看板</a>
+            <a href="#about-small">页面说明</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="home-hero section-shell" id="small-home">
+            <div class="panel home-hero-panel">
+                <p class="eyebrow">MINI PRACTICE MATRIX</p>
+                <h1>小项目展示看板</h1>
+                <p class="hero-text">
+                    这个页面专门用来区分小型练习项目、快速实验和短周期原型。
+                    它会和首页的大项目展示分开维护，方便你后续把轻量作品单独收纳，
+                    也让整个博客的项目层级更清楚。
+                </p>
+
+                <div class="hero-tags">
+                    <span>Mini Builds</span>
+                    <span>Practice Archive</span>
+                    <span>Fast Iteration</span>
+                </div>
+
+                <div class="hero-actions">
+                    <a class="primary-link" href="#small-projects-board">ENTER SMALL BOARD</a>
+                    <a class="secondary-link" href="index.html#large-projects">BACK TO LARGE BOARD</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-shell board-section" id="small-projects-board">
+            <div class="section-heading">
+                <p class="eyebrow">SMALL / PROJECT BOARD</p>
+                <h2>小项目看板</h2>
+                <p>当前已挂载 1 个 STM32 小练习项目，后续可以继续按同样方式追加更多轻量实验作品。</p>
+            </div>
+
+            <div class="project-board multi-board">
+                <a class="project-card" href="project-stm32f103-led-mode-switch.html">
+                    <span class="card-badge">STM32 PRACTICE</span>
+                    <h3>按键切换 LED 流水/闪烁状态实验</h3>
+                    <p>
+                        基于 STM32F103C8T6，通过外部中断切换 LED 流水灯与整体闪烁两种模式，
+                        并通过串口实时打印当前运行状态。
+                    </p>
+
+                    <ul class="card-meta">
+                        <li>Key: PB10</li>
+                        <li>LED: PB3 / PB4 / PB5</li>
+                        <li>UART: 115200</li>
+                    </ul>
+
+                    <span class="card-link">OPEN PRACTICE DETAIL</span>
+                </a>
+
+                <article class="project-card project-card-placeholder">
+                    <span class="card-badge">PRACTICE SLOT B</span>
+                    <h3>小练习项目位 B</h3>
+                    <p>
+                        后续你提供的小项目资料，也可以继续按现在的卡片样式追加到这里，
+                        保持和首页一致的阅读体验。
+                    </p>
+
+                    <ul class="card-meta">
+                        <li>Lightweight</li>
+                        <li>Reusable Card</li>
+                        <li>Static Friendly</li>
+                    </ul>
+
+                    <span class="card-link">READY FOR MORE ENTRIES</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="about-small">
+            <div class="section-heading">
+                <p class="eyebrow">WHY THIS PAGE</p>
+                <h2>页面说明</h2>
+                <p>这个页面先负责承接小项目入口，不和首页的大项目看板混在一起，后续扩展时会更顺手。</p>
+            </div>
+
+            <div class="about-layout">
+                <article class="about-card panel">
+                    <p>
+                        大项目通常包含完整背景、模块拆解和较长的展示内容，而小项目更适合用卡片方式快速浏览。
+                        先把它们分层后，后续你不管是补练习页面、实验记录还是轻量原型，都可以直接接到这里。
+                    </p>
+                    <p>
+                        目前这个页面先保留统一的视觉风格和展示骨架，下一步你只需要把要展示的小项目内容发给我，
+                        我们就继续按这里的结构增量补充。
+                    </p>
+                </article>
+
+                <div class="about-side-grid">
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">01</span>
+                        <h3>Scope</h3>
+                        <p>放小练习、小实验、小原型，不抢占首页大项目区域。</p>
+                    </article>
+
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">02</span>
+                        <h3>Update Mode</h3>
+                        <p>后续直接按卡片形式继续追加，保持最小改动扩展。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>SMALL PROJECT BOARD / PRACTICE EDITION</p>
+    </footer>
+</body>
+</html>

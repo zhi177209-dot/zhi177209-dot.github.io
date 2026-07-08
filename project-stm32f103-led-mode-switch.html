@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="STM32F103C8T6 小项目详情页，展示按键切换 LED 流水与闪烁模式、串口状态打印以及开发中的问题排查。">
+    <title>STM32 LED Mode Switch | Small Project Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-noise"></div>
+    <div class="page-grid"></div>
+
+    <header class="site-header">
+        <a class="brand" href="small-projects.html#small-projects-board">
+            <span class="brand-mark"></span>
+            <span class="brand-text">
+                <strong>HYGRO//LAB</strong>
+                <small>Small Project Detail</small>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="小项目详情导航">
+            <a href="small-projects.html#small-projects-board">返回小项目看板</a>
+            <a href="#project-intro">项目简介</a>
+            <a href="#simulation">演示视频</a>
+            <a href="#code-showcase">模块代码</a>
+            <a href="#troubleshooting">问题总结</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero section-shell" id="project-top">
+            <div class="hero-copy panel">
+                <p class="eyebrow">STM32F103C8T6 / MINI LAB 01</p>
+                <h1>按键切换 LED 流水/闪烁状态实验</h1>
+                <p class="hero-text">
+                    这是一个围绕 GPIO、外部中断和串口调试展开的 STM32 小练习。
+                    按下按键后，系统会在 LED 流水灯和整体闪烁两种模式之间切换，
+                    并通过串口打印当前状态，形成一条完整的输入、切换、执行、反馈链路。
+                </p>
+
+                <div class="hero-tags">
+                    <span>STM32F103C8T6</span>
+                    <span>GPIO + EXTI</span>
+                    <span>USART1 Printf</span>
+                    <span>Mode Switching</span>
+                </div>
+
+                <div class="hero-actions">
+                    <a class="primary-link" href="#project-intro">ENTER PROJECT</a>
+                    <a class="secondary-link" href="#simulation">VIEW DEMO</a>
+                </div>
+            </div>
+
+            <aside class="telemetry-stack">
+                <div class="panel live-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">RUNTIME STATE</span>
+                        <span class="panel-code">MODE-TOGGLE</span>
+                    </div>
+
+                    <div class="live-chip">
+                        <span class="live-dot"></span>
+                        <span>KEY EVENT READY</span>
+                    </div>
+
+                    <ul class="signal-list">
+                        <li><span>MCU</span><strong>STM32F103C8T6</strong></li>
+                        <li><span>Key Input</span><strong>PB10 EXTI</strong></li>
+                        <li><span>LED Output</span><strong>PB3 / PB4 / PB5</strong></li>
+                    </ul>
+                </div>
+
+                <div class="telemetry-grid">
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">MODE A</span>
+                            <span class="panel-code">LED_FLOW</span>
+                        </div>
+
+                        <div class="gauge">
+                            <div class="gauge-arc"></div>
+                            <div class="gauge-cutout"></div>
+                            <div class="gauge-needle"></div>
+                            <div class="gauge-core"></div>
+
+                            <div class="gauge-ticks" aria-hidden="true">
+                                <span style="--tick:0"></span>
+                                <span style="--tick:1"></span>
+                                <span style="--tick:2"></span>
+                                <span style="--tick:3"></span>
+                                <span style="--tick:4"></span>
+                                <span style="--tick:5"></span>
+                                <span style="--tick:6"></span>
+                                <span style="--tick:7"></span>
+                                <span style="--tick:8"></span>
+                                <span style="--tick:9"></span>
+                                <span style="--tick:10"></span>
+                            </div>
+
+                            <div class="gauge-label gauge-left">PB3</div>
+                            <div class="gauge-label gauge-center">流水</div>
+                            <div class="gauge-label gauge-right">PB5</div>
+                        </div>
+                    </article>
+
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">MODE B</span>
+                            <span class="panel-code">LED_BLINK</span>
+                        </div>
+
+                        <div class="water-ball">
+                            <div class="water-fill">
+                                <span class="wave wave-a"></span>
+                                <span class="wave wave-b"></span>
+                                <span class="wave wave-c"></span>
+                            </div>
+                            <div class="water-content">
+                                <strong>ALL</strong>
+                                <span>LED Toggle Blink</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section-shell" id="project-intro">
+            <div class="section-heading">
+                <p class="eyebrow">PROJECT OVERVIEW</p>
+                <h2>项目简介</h2>
+                <p>
+                    这个项目的重点不是单独点亮某个 LED，而是把按键输入、中断响应、状态变量切换、
+                    LED 模式执行以及串口打印调试串起来，形成一个适合嵌入式入门展示的小闭环。
+                </p>
+            </div>
+
+            <div class="intro-layout">
+                <article class="panel intro-copy">
+                    <h3>系统说明</h3>
+                    <p>
+                        工程基于 CubeMX 生成初始化框架，GPIO 中将 PB10 配置为上升沿外部中断输入，
+                        PB3、PB4、PB5 配置为推挽输出。按键触发后，中断回调只负责改写标志位；
+                        主循环读取标志位后决定执行哪种 LED 效果，并通过 <code>printf</code> 将当前模式打印到串口。
+                    </p>
+                    <p>
+                        这样的结构把“快速响应”和“具体业务处理”拆开了，中断只做轻量事件通知，
+                        而灯效与输出信息则放在主循环里完成，更符合 STM32 项目开发的规范写法。
+                    </p>
+                </article>
+
+                <div class="architecture-grid">
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">01</span>
+                        <h3>Key Input</h3>
+                        <p>PB10 配置为 EXTI 上升沿中断，按键按下时立即进入回调函数，响应输入事件。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">02</span>
+                        <h3>Flag Switch</h3>
+                        <p>回调中只切换 <code>key10_flag</code> 和 <code>key10_uart</code>，把模式状态和串口提示拆成两个轻量标志。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">03</span>
+                        <h3>LED Output</h3>
+                        <p><code>led_off1()</code> 实现三灯流水效果，<code>led_off2()</code> 实现三灯整体亮灭闪烁效果。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">04</span>
+                        <h3>UART Feedback</h3>
+                        <p>通过 <code>fputc</code> 重定向 <code>printf</code> 到 USART1，模式切换后可实时在串口助手中看到文本提示。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-shell" id="simulation">
+            <div class="section-heading">
+                <p class="eyebrow">FLASHED DEVICE DEMO</p>
+                <h2>演示视频</h2>
+                <p>下面的视频展示了程序烧录到实物之后，按键切换两种 LED 状态的运行结果。</p>
+            </div>
+
+            <div class="simulation-layout">
+                <figure class="panel simulation-frame">
+                    <video controls preload="metadata">
+                        <source src="assets/LED blink state switching.mp4" type="video/mp4">
+                        你的浏览器暂不支持视频播放，请直接打开视频文件查看。
+                    </video>
+                    <figcaption>按下按键后，LED 在“流水灯”和“整体闪烁”两种状态间切换，串口同步打印当前运行模式。</figcaption>
+                </figure>
+
+                <aside class="panel simulation-aside">
+                    <div class="panel-head">
+                        <span class="panel-title">DEMO NOTES</span>
+                        <span class="panel-code">BURNED TEST</span>
+                    </div>
+
+                    <p>
+                        这个演示不是纯仿真截图，而是烧录到板子后的真实结果。页面里保留视频入口，
+                        一方面可以直观看到 LED 模式切换，另一方面也能说明代码已经通过实物验证。
+                    </p>
+
+                    <ul class="simulation-points">
+                        <li>默认模式下运行 LED 流水灯效果</li>
+                        <li>按键触发中断后切换到整体闪烁模式</li>
+                        <li>串口输出同步提示当前进入的运行状态</li>
+                    </ul>
+
+                    <a class="sim-button" href="assets/LED blink state switching.mp4" target="_blank" rel="noreferrer">
+                        <span>OPEN VIDEO FILE</span>
+                    </a>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section-shell" id="code-showcase">
+            <div class="section-heading">
+                <p class="eyebrow">CORE SOURCE</p>
+                <h2>模块代码展示</h2>
+                <p>下面三组代码分别对应 LED 灯效实现、中断标志位切换，以及主循环里的串口输出与业务分发。</p>
+            </div>
+
+            <div class="code-grid">
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/led.c</span>
+                    </div>
+                    <pre><code><span class="token type">void</span> <span class="token function">led_off1</span>(<span class="token type">void</span>)
+{
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+    <span class="token function">HAL_Delay</span>(<span class="token number">500</span>);
+
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+    <span class="token function">HAL_Delay</span>(<span class="token number">500</span>);
+
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
+    <span class="token function">HAL_Delay</span>(<span class="token number">500</span>);
+}
+
+<span class="token type">void</span> <span class="token function">led_off2</span>(<span class="token type">void</span>)
+{
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
+    <span class="token function">HAL_Delay</span>(<span class="token number">500</span>);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
+    <span class="token function">HAL_GPIO_WritePin</span>(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+    <span class="token function">HAL_Delay</span>(<span class="token number">500</span>);
+}</code></pre>
+                </article>
+
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/stm32f1xx_it.c</span>
+                    </div>
+                    <pre><code><span class="token keyword">volatile</span> <span class="token type">uint8_t</span> key10_flag;
+<span class="token keyword">volatile</span> <span class="token type">uint8_t</span> key10_uart = <span class="token number">1</span>;
+
+<span class="token type">void</span> <span class="token function">HAL_GPIO_EXTI_Callback</span>(<span class="token type">uint16_t</span> GPIO_Pin)
+{
+    <span class="token keyword">if</span> (GPIO_Pin == GPIO_PIN_10) {
+        <span class="token keyword">if</span> (key10_flag == <span class="token number">0</span>) {
+            key10_flag = <span class="token number">1</span>;
+            key10_uart = <span class="token number">2</span>;
+        } <span class="token keyword">else</span> {
+            key10_flag = <span class="token number">0</span>;
+            key10_uart = <span class="token number">1</span>;
+        }
+    }
+}</code></pre>
+                </article>
+
+                <article class="code-window wide">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/main.c</span>
+                    </div>
+                    <pre><code><span class="token type">int</span> <span class="token function">fputc</span>(<span class="token type">int</span> ch, FILE *f)
+{
+    <span class="token function">HAL_UART_Transmit</span>(&amp;huart1, (<span class="token type">uint8_t</span> *)&amp;ch, <span class="token number">1</span>, <span class="token number">1000</span>);
+    <span class="token keyword">return</span> ch;
+}
+
+<span class="token keyword">while</span> (<span class="token number">1</span>)
+{
+    <span class="token keyword">if</span> (key10_uart == <span class="token number">1</span>) {
+        <span class="token function">printf</span>(<span class="token string">"运行led_off1\r\n"</span>);
+        key10_uart = <span class="token number">0</span>;
+    } <span class="token keyword">else if</span> (key10_uart == <span class="token number">2</span>) {
+        <span class="token function">printf</span>(<span class="token string">"运行led_off2\r\n"</span>);
+        key10_uart = <span class="token number">0</span>;
+    }
+
+    <span class="token keyword">if</span> (key10_flag == <span class="token number">0</span>) {
+        <span class="token function">led_off1</span>();
+    } <span class="token keyword">else</span> {
+        <span class="token function">led_off2</span>();
+    }
+}</code></pre>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="troubleshooting">
+            <div class="section-heading">
+                <p class="eyebrow">DEBUG NOTES</p>
+                <h2>问题与解决方式</h2>
+                <p>这部分保留你在做小项目时真正踩过的坑和修正过程，会让这个页面比单纯展示效果更有学习价值。</p>
+            </div>
+
+            <div class="architecture-grid">
+                <article class="panel architecture-card">
+                    <span class="architecture-id">01</span>
+                    <h3>仿真按键按下程序卡死</h3>
+                    <p>
+                        问题出在外部中断回调 <code>HAL_GPIO_EXTI_Callback</code> 中调用了 <code>HAL_Delay()</code>。
+                        中断服务执行时总中断关闭，而 <code>HAL_Delay()</code> 依赖 SysTick 计时，两者冲突后程序会直接阻塞。
+                    </p>
+                    <p>
+                        删除回调内延时后卡死消失；原本想用它做按键消抖，后续改成“标志位 + 主循环轮询消抖”的合规方案。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">02</span>
+                    <h3>实物上电误触发中断</h3>
+                    <p>
+                        Proteus 仿真正常，但板子上电后未按键也频繁进中断，LED 状态自行翻转。
+                        根因是输入脚若使用 <code>GPIO_NOPULL</code>，实物环境下引脚会浮空，容易受到杂波干扰。
+                    </p>
+                    <p>
+                        将输入配置改为 <code>GPIO_PULLUP</code> 后，空闲状态保持高电平，中断误触发问题被消除。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">03</span>
+                    <h3>多文件共享中断标志变量</h3>
+                    <p>
+                        中断回调里修改标志，主循环里读取标志，不能通过 <code>return</code> 传值，也不能在多个 <code>.c</code> 文件里重复定义变量。
+                    </p>
+                    <p>
+                        解决方式是只在一个源文件中定义全局变量，在其他需要访问的文件中通过 <code>extern</code> 声明，实现多文件共享。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">04</span>
+                    <h3>后续编程建议</h3>
+                    <p>
+                        中断回调中禁止放延时、阻塞循环等耗时逻辑，只做置位和清零；机械按键消抖尽量放到主循环；
+                        外部中断输入脚在实物上必须使用上拉或下拉，避免浮空。
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="notes">
+            <div class="section-heading">
+                <p class="eyebrow">CONCEPT NOTES</p>
+                <h2>知识点补充</h2>
+                <p>页面最后保留两组知识总结，既能解释这次写法，也方便以后复盘 STM32 基础外设项目。</p>
+            </div>
+
+            <div class="about-layout">
+                <article class="about-card panel">
+                    <h3>STM32 外设标准初始化顺序</h3>
+                    <ul class="simulation-points">
+                        <li>开时钟：先开启 GPIO 与外设时钟，否则后续寄存器配置无效。</li>
+                        <li>配引脚：设置输入输出模式、上下拉、速度、复用或中断功能。</li>
+                        <li>配外设：如 USART、TIM、ADC、EXTI 等参数初始化。</li>
+                        <li>配 NVIC：设置中断优先级、使能中断通道。</li>
+                        <li>启外设：最后启动外设工作，形成完整初始化链路。</li>
+                    </ul>
+                </article>
+
+                <div class="about-side-grid">
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">01</span>
+                        <h3>轮询</h3>
+                        <p>CPU 在主循环中反复查询状态，逻辑直观但会持续占用算力，实时性也受循环耗时影响。</p>
+                    </article>
+
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">02</span>
+                        <h3>中断</h3>
+                        <p>设备有事件时主动打断主程序，CPU 平时可继续跑主逻辑，响应更快，但中断内必须保持轻量。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>STM32 LED MODE SWITCH / SMALL PROJECT DETAIL</p>
+    </footer>
+</body>
+</html>
