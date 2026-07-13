@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="STM32F103C8T6 小项目详情页，展示 DHT11 温湿度采集、OLED 实时显示、USART1 串口输出与定时记录。">
+    <title>STM32 小型温湿度采集与显示 | Small Project Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-noise"></div>
+    <div class="page-grid"></div>
+
+    <header class="site-header">
+        <a class="brand" href="small-projects.html#small-projects-board">
+            <span class="brand-mark"></span>
+            <span class="brand-text">
+                <strong>HYGRO//LAB</strong>
+                <small>Small Project Detail</small>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="小项目详情导航">
+            <a href="small-projects.html#small-projects-board">返回小项目看板</a>
+            <a href="#project-intro">项目简介</a>
+            <a href="#simulation">结果展示</a>
+            <a href="#code-showcase">核心代码</a>
+            <a href="#troubleshooting">问题总结</a>
+            <a href="#notes">知识点</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero section-shell" id="project-top">
+            <div class="hero-copy panel">
+                <p class="eyebrow">STM32F103C8T6 / MINI LAB 02</p>
+                <h1>小型温湿度采集与显示</h1>
+                <p class="hero-text">
+                    这个小项目围绕 <code>DHT11</code>、<code>OLED</code> 和 <code>USART1</code> 展开，
+                    用 STM32F103C8T6 完成温湿度采集、屏幕显示、串口输出以及按分钟周期记录。
+                    它不是单一外设的孤立练习，而是一次把传感器时序、显示驱动、串口调试和定时任务串起来的完整小闭环。
+                </p>
+
+                <div class="hero-tags">
+                    <span>STM32F103C8T6</span>
+                    <span>DHT11 Single Bus</span>
+                    <span>OLED I2C</span>
+                    <span>USART1 Logging</span>
+                </div>
+
+                <div class="hero-actions">
+                    <a class="primary-link" href="#project-intro">ENTER PROJECT</a>
+                    <a class="secondary-link" href="#simulation">VIEW RESULT</a>
+                </div>
+            </div>
+
+            <aside class="telemetry-stack">
+                <div class="panel live-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">SYSTEM STATUS</span>
+                        <span class="panel-code">SENSE-DISPLAY-LOG</span>
+                    </div>
+
+                    <div class="live-chip">
+                        <span class="live-dot"></span>
+                        <span>1 MINUTE SAMPLE LOOP</span>
+                    </div>
+
+                    <ul class="signal-list">
+                        <li><span>Sensor Bus</span><strong>DHT11 / PA5</strong></li>
+                        <li><span>Display Bus</span><strong>I2C1 / PB6 PB7</strong></li>
+                        <li><span>Serial Output</span><strong>USART1 / 115200</strong></li>
+                    </ul>
+                </div>
+
+                <div class="telemetry-grid">
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">ROOM LOG</span>
+                            <span class="panel-code">2026-07-13</span>
+                        </div>
+
+                        <ul class="signal-list">
+                            <li><span>Record Count</span><strong>33</strong></li>
+                            <li><span>Duration</span><strong>32 Minutes</strong></li>
+                            <li><span>Humidity</span><strong>60.0% -> 43.0%</strong></li>
+                            <li><span>Temperature</span><strong>32.3C -> 29.3C</strong></li>
+                        </ul>
+                    </article>
+
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">AVERAGE DATA</span>
+                            <span class="panel-code">JSON VERIFIED</span>
+                        </div>
+
+                        <ul class="signal-list">
+                            <li><span>Avg Humidity</span><strong>48.85%</strong></li>
+                            <li><span>Avg Temperature</span><strong>30.63C</strong></li>
+                            <li><span>First Shot</span><strong>55.0% / 31.8C</strong></li>
+                            <li><span>Display Mode</span><strong>OLED + UART</strong></li>
+                        </ul>
+                    </article>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section-shell" id="project-intro">
+            <div class="section-heading">
+                <p class="eyebrow">PROJECT OVERVIEW</p>
+                <h2>项目简介</h2>
+                <p>
+                    这个项目的核心目标，是把温湿度数据从“读到”扩展到“看见”和“记录下来”。
+                    DHT11 负责提供环境数据，OLED 负责本地显示，USART1 负责把同一份结果发到串口助手，
+                    TIM2 则把采样动作稳定地控制在 1 分钟一次。
+                </p>
+            </div>
+
+            <div class="intro-layout">
+                <article class="panel intro-copy">
+                    <h3>系统说明</h3>
+                    <p>
+                        工程由 CubeMX 生成基础初始化代码，主程序先完成 GPIO、TIM1、TIM2、USART1 和 I2C1 的初始化，
+                        随后启动 OLED、等待 DHT11 上电稳定，再由 <code>TIM2</code> 提供周期计数。程序上电后会先执行一次采样，
+                        之后每累计到 1 分钟重新采集一次，并把同一份温湿度结果同时写到 OLED 和串口。
+                    </p>
+                    <p>
+                        从结果上看，这不是一张静态展示图，而是一个持续运行的温湿度采集小系统。
+                        我提供的 JSON 记录显示，系统在 <code>2026-07-13 21:33:40</code> 到 <code>22:05:37</code> 之间连续记录了 33 条房间数据，
+                        这也让页面里展示的实物图和串口图具备了更强的真实性。
+                    </p>
+                </article>
+
+                <div class="architecture-grid">
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">01</span>
+                        <h3>DHT11 采集</h3>
+                        <p>PA5 复用为单总线数据脚，主机先发送起始信号，再等待 DHT11 应答并读取 40bit 数据，最后通过校验和确认结果有效。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">02</span>
+                        <h3>OLED 显示</h3>
+                        <p>OLED 通过 I2C1 与 MCU 通信，显示内容采用 16x16 汉字字模和 8x16 数字字模组合，直接在屏幕上渲染“湿度”“温度”和数值。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">03</span>
+                        <h3>UART 输出</h3>
+                        <p>USART1 以 <code>115200 8N1</code> 输出 ASCII 文本，串口助手可实时看到每轮采样结果，方便联调和留存原始记录。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">04</span>
+                        <h3>定时记录</h3>
+                        <p>TIM2 溢出中断只做计数，主循环按计数结果决定何时再次采样，避免把复杂业务逻辑塞进中断回调。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-shell" id="implementation">
+            <div class="section-heading">
+                <p class="eyebrow">IMPLEMENTATION NOTES</p>
+                <h2>关键实现思路</h2>
+                <p>这一部分专门解释几个容易“看代码能跑，但不容易一下看懂”的实现细节。</p>
+            </div>
+
+            <div class="architecture-grid">
+                <article class="panel architecture-card">
+                    <span class="architecture-id">01</span>
+                    <h3>DHT11 为什么切换输入/输出模式</h3>
+                    <p>
+                        DHT11 使用单总线协议，同一根数据线既要由主机发起启动信号，也要由传感器返回应答和数据。
+                        因此 MCU 端必须先把引脚配置为输出，主动拉低总线发送起始信号；随后再切换为输入，释放总线，等待 DHT11 响应并输出 40 位数据。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">02</span>
+                    <h3>为什么用 TIM1 做微秒延时</h3>
+                    <p>
+                        DHT11 不仅要求启动阶段保持低电平至少 18ms，还要求在释放总线后进行 <code>20~40us</code> 级等待，
+                        并在大约 <code>40us</code> 的采样点判断当前位是 0 还是 1。为了让这些关键时序更稳定，TIM1 被配置为 1MHz 计数基准，
+                        从而给 <code>bsp_delay_us()</code> 提供可靠的微秒级延时。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">03</span>
+                    <h3>为什么读取阶段临时关中断</h3>
+                    <p>
+                        DHT11 单次读取 40bit 时，每一位的判定窗口只有几十微秒。如果刚好被 TIM2 之类的中断打断，
+                        采样点就可能偏移，最终导致校验失败或读数异常。所以在关键读取时序阶段临时屏蔽中断，读完后再恢复，
+                        能更稳地保证单总线时序完整。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">04</span>
+                    <h3>为什么 OLED 采用字模显示</h3>
+                    <p>
+                        SSD1306 这类 OLED 本质上是点阵屏，不像串口终端那样天然支持中文字符串显示。
+                        这次又需要显示“湿度”“温度”等汉字，所以更合适的方式是提前准备汉字点阵和数字点阵，
+                        再按页地址把字节写入显存。这样既能稳定显示中文，也能精确控制排版和小数格式。
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="simulation">
+            <div class="section-heading">
+                <p class="eyebrow">RESULT SHOWCASE</p>
+                <h2>结果展示</h2>
+                <p>下面两张照片分别对应实物端的 OLED 显示效果，以及上位机串口助手接收到的同周期数据输出。</p>
+            </div>
+
+            <div class="architecture-grid">
+                <figure class="panel simulation-frame">
+                    <img src="assets/oled+uart+dht11-01.jpg" alt="STM32 温湿度采集实物图，OLED 显示湿度 53.0 和温度 31.8">
+                    <figcaption>实物端展示：OLED 上同时显示“湿度”和“温度”，图中结果为 <code>53.0%</code> 与 <code>31.8C</code>。</figcaption>
+                </figure>
+
+                <figure class="panel simulation-frame">
+                    <img src="assets/oled+uart+dht11-02.jpg" alt="串口助手接收到 STM32 周期输出的温湿度文本记录">
+                    <figcaption>串口端展示：USART1 按分钟输出 ASCII 文本，截图中连续记录了 <code>55.0%</code>、<code>54.0%</code>、<code>53.0%</code> 的变化。</figcaption>
+                </figure>
+            </div>
+
+            <div class="section-shell">
+                <aside class="panel simulation-aside">
+                    <div class="panel-head">
+                        <span class="panel-title">DEMO NOTES</span>
+                        <span class="panel-code">REAL DEVICE + JSON LOG</span>
+                    </div>
+
+                    <p>
+                        页面里的展示不只停留在“照片看起来正常”。除了 OLED 实物图和串口截图，你还提供了同一项目导出的房间数据记录文件。
+                        从这份 <code>records-2026-07-13-22-05-55.json</code> 可以看出，系统按 1 分钟间隔稳定运行了 32 分钟，
+                        期间湿度从 <code>60.0%</code> 逐步下降到 <code>43.0%</code>，温度从 <code>32.3C</code> 降到 <code>29.3C</code>。
+                    </p>
+
+                    <ul class="simulation-points">
+                        <li>上电后先执行一次采样，再转入周期采样状态</li>
+                        <li>OLED 与 UART 使用同一份采样结果，显示与打印保持同步</li>
+                        <li>JSON 记录与照片中的时间点、温湿度数值能够相互印证</li>
+                    </ul>
+
+                    <div class="hero-actions">
+                        <a class="sim-button" href="assets/oled+uart+dht11-01.jpg" target="_blank" rel="noreferrer">
+                            <span>OPEN DEVICE PHOTO</span>
+                        </a>
+                        <a class="secondary-link" href="assets/oled+uart+dht11-02.jpg" target="_blank" rel="noreferrer">OPEN UART PHOTO</a>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section-shell" id="code-showcase">
+            <div class="section-heading">
+                <p class="eyebrow">CORE SOURCE</p>
+                <h2>核心代码展示</h2>
+                <p>这次只保留三块最关键的代码，分别对应主调度逻辑、DHT11 驱动读取流程和 OLED 初始化/数值显示逻辑。（代码会出现一点偏差仅作参考）</p>
+            </div>
+
+            <div class="code-grid">
+                <article class="code-window wide">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/main.c</span>
+                    </div>
+                    <pre><code><span class="token function">MX_GPIO_Init</span>();
+<span class="token function">MX_TIM1_Init</span>();
+<span class="token function">MX_USART1_UART_Init</span>();
+<span class="token function">MX_TIM2_Init</span>();
+<span class="token function">MX_I2C1_Init</span>();
+
+<span class="token function">OLED_Init</span>();
+HAL_Delay(<span class="token number">2000</span>);
+<span class="token function">HAL_TIM_Base_Start_IT</span>(&amp;htim2);
+
+<span class="token keyword">while</span> (<span class="token number">1</span>)
+{
+    <span class="token keyword">if</span> (flag) {
+        HAL_Delay(<span class="token number">2000</span>);
+        <span class="token keyword">if</span> (<span class="token function">DHT11_ReadData</span>(&amp;DHT11_Data)) {
+            uint16_t len = (uint16_t)<span class="token function">snprintf</span>(message, <span class="token keyword">sizeof</span>(message),
+                <span class="token string">"湿度：%d.%d%% 温度：%d.%dC\r\n"</span>,
+                DHT11_Data.humi_int, DHT11_Data.humi_deci,
+                DHT11_Data.temp_int, DHT11_Data.temp_deci);
+            <span class="token function">HAL_UART_Transmit</span>(&amp;huart1, (uint8_t *)message, len, <span class="token number">1000</span>);
+            <span class="token function">OLED_Clear</span>();
+            <span class="token function">OLED_ShowZh16x16ByIndex</span>(<span class="token number">0</span>, <span class="token number">2</span>, <span class="token number">0</span>);
+            <span class="token function">OLED_ShowNum8x16</span>(<span class="token number">48</span>, <span class="token number">2</span>, (int16_t)(DHT11_Data.humi_int * <span class="token number">10</span> + DHT11_Data.humi_deci), <span class="token number">1</span>);
+            <span class="token function">OLED_ShowZh16x16ByIndex</span>(<span class="token number">0</span>, <span class="token number">6</span>, <span class="token number">3</span>);
+            <span class="token function">OLED_ShowNum8x16</span>(<span class="token number">48</span>, <span class="token number">6</span>, (int16_t)(DHT11_Data.temp_int * <span class="token number">10</span> + DHT11_Data.temp_deci), <span class="token number">1</span>);
+        }
+        flag = <span class="token number">0</span>;
+    } <span class="token keyword">else</span> <span class="token keyword">if</span> (tim2_ms_cnt &gt;= COLLECT_PERIOD_5MIN) {
+        tim2_ms_cnt = <span class="token number">0</span>;
+        <span class="token comment">// 到达 1 分钟周期后重复同一套采集、显示、串口输出流程</span>
+    }
+}</code></pre>
+                </article>
+
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/bsp_dht11.c</span>
+                    </div>
+                    <pre><code><span class="token type">uint8_t</span> <span class="token function">DHT11_ReadData</span>(DHT11_Data_TypeDef *DHT11_Data)
+{
+    uint32_t primask;
+
+    <span class="token comment">// 主机拉低总线，发送起始信号</span>
+    <span class="token function">DHT11_Mode_OUT_PP</span>();
+    <span class="token function">HAL_GPIO_WritePin</span>(BSP_DHT11_PORT, BSP_DHT11_PIN, GPIO_PIN_RESET);
+    <span class="token function">HAL_Delay</span>(<span class="token number">18</span>);
+
+    primask = <span class="token function">__get_PRIMASK</span>();
+    <span class="token function">__disable_irq</span>();
+
+    <span class="token comment">// 释放总线，切到输入等待应答</span>
+    <span class="token function">HAL_GPIO_WritePin</span>(BSP_DHT11_PORT, BSP_DHT11_PIN, GPIO_PIN_SET);
+    <span class="token function">DHT11_Mode_IN_NP</span>();
+    <span class="token function">bsp_delay_us</span>(<span class="token number">30</span>);
+
+    <span class="token keyword">if</span> (!<span class="token function">DHT11_WaitForPinState</span>(GPIO_PIN_RESET, <span class="token number">100</span>)) {
+        <span class="token keyword">if</span> (!primask) { <span class="token function">__enable_irq</span>(); }
+        <span class="token keyword">return</span> <span class="token number">0</span>;
+    }
+    <span class="token keyword">if</span> (!<span class="token function">DHT11_WaitForPinState</span>(GPIO_PIN_SET, <span class="token number">100</span>)) {
+        <span class="token keyword">if</span> (!primask) { <span class="token function">__enable_irq</span>(); }
+        <span class="token keyword">return</span> <span class="token number">0</span>;
+    }
+
+    DHT11_Data-&gt;humi_int = <span class="token function">DHT11_ReadByte</span>();
+    DHT11_Data-&gt;humi_deci = <span class="token function">DHT11_ReadByte</span>();
+    DHT11_Data-&gt;temp_int = <span class="token function">DHT11_ReadByte</span>();
+    DHT11_Data-&gt;temp_deci = <span class="token function">DHT11_ReadByte</span>();
+    DHT11_Data-&gt;check_sum = <span class="token function">DHT11_ReadByte</span>();
+
+    <span class="token function">DHT11_Mode_OUT_PP</span>();
+    <span class="token function">HAL_GPIO_WritePin</span>(BSP_DHT11_PORT, BSP_DHT11_PIN, GPIO_PIN_SET);
+    <span class="token keyword">if</span> (!primask) { <span class="token function">__enable_irq</span>(); }
+
+    <span class="token keyword">return</span> (DHT11_Data-&gt;check_sum ==
+        (DHT11_Data-&gt;humi_int + DHT11_Data-&gt;humi_deci +
+         DHT11_Data-&gt;temp_int + DHT11_Data-&gt;temp_deci)) ? <span class="token number">1U</span> : <span class="token number">0U</span>;
+}</code></pre>
+                </article>
+
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/oled.c</span>
+                    </div>
+                    <pre><code><span class="token type">uint8_t</span> <span class="token function">OLED_Init</span>(<span class="token type">void</span>)
+{
+    <span class="token keyword">static const</span> <span class="token type">uint16_t</span> probe_addrs[] = {OLED_DEV_ADDR_GND, OLED_DEV_ADDR_VCC};
+
+    <span class="token keyword">for</span> (<span class="token type">uint8_t</span> i = <span class="token number">0</span>; i &lt; <span class="token number">2</span>; i++) {
+        <span class="token keyword">if</span> (<span class="token function">HAL_I2C_IsDeviceReady</span>(&amp;hi2c1, probe_addrs[i], <span class="token number">2</span>, <span class="token number">50</span>) == HAL_OK) {
+            oled_i2c_addr = probe_addrs[i];
+            oled_ready = <span class="token number">1U</span>;
+            <span class="token keyword">break</span>;
+        }
+    }
+
+    <span class="token keyword">if</span> (oled_ready == <span class="token number">0U</span>) {
+        <span class="token keyword">return</span> <span class="token number">0U</span>;
+    }
+
+    <span class="token function">OLED_WriteCmd</span>(<span class="token number">0xAE</span>);
+    <span class="token function">OLED_WriteCmd</span>(<span class="token number">0xD5</span>);
+    <span class="token function">OLED_WriteCmd</span>(<span class="token number">0xA8</span>);
+    <span class="token function">OLED_WriteCmd</span>(<span class="token number">0xAF</span>);
+    <span class="token function">OLED_Clear</span>();
+    <span class="token keyword">return</span> <span class="token number">1U</span>;
+}
+
+<span class="token type">void</span> <span class="token function">OLED_ShowZh16x16ByIndex</span>(<span class="token type">uint8_t</span> x, <span class="token type">uint8_t</span> page, <span class="token type">uint8_t</span> index)
+{
+    <span class="token keyword">if</span> (oled_ready == <span class="token number">0U</span> || index &gt;= OLED_ZH16X16_COUNT) {
+        <span class="token keyword">return</span>;
+    }
+
+    <span class="token function">OLED_SetPos</span>(x, page);
+    <span class="token keyword">for</span> (uint8_t col = <span class="token number">0U</span>; col &lt; <span class="token number">16U</span>; col++) {
+        <span class="token function">OLED_WriteData</span>(oled_zh16x16[index][<span class="token number">4U</span> + col]);
+    }
+
+    <span class="token function">OLED_SetPos</span>(x, (uint8_t)(page + <span class="token number">1U</span>));
+    <span class="token keyword">for</span> (uint8_t col = <span class="token number">0U</span>; col &lt; <span class="token number">16U</span>; col++) {
+        <span class="token function">OLED_WriteData</span>(oled_zh16x16[index][<span class="token number">20U</span> + col]);
+    }
+}</code></pre>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="troubleshooting">
+            <div class="section-heading">
+                <p class="eyebrow">DEBUG NOTES</p>
+                <h2>问题与解决方式</h2>
+                <p>这里保留了这次从“能跑”到“稳定运行”过程中最关键的几个排障点，内容整理自你的项目问题文档。</p>
+            </div>
+
+            <div class="architecture-grid">
+                <article class="panel architecture-card">
+                    <span class="architecture-id">01</span>
+                    <h3>TIM1 微秒延时不准</h3>
+                    <p>
+                        DHT11 依赖微秒级判位时序，如果定时器不是按照 1us 计数，读取结果就容易出错。
+                        最终把 TIM1 配成 1MHz 计数基准，也就是 72MHz 主频下分频设为 <code>72-1</code>，让 <code>bsp_delay_us()</code> 具备稳定性。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">02</span>
+                    <h3>DHT11 启动与读取时序不稳</h3>
+                    <p>
+                        起始信号、释放总线、等待低高电平应答、读取每一位的采样点，顺序和时长都必须符合协议。
+                        后来按协议重新梳理流程，并给等待逻辑补上超时保护，避免因时序异常直接卡死。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">03</span>
+                    <h3>TIM2 中断打断采样</h3>
+                    <p>
+                        DHT11 单次读取 40bit 时，每一位只有几十微秒的判定窗口，中断插入会打乱采样点。
+                        现在的做法是在关键读取阶段临时关中断，读完再恢复，避免 TIM2 周期计数打断单总线时序。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">04</span>
+                    <h3>第一次采集失败</h3>
+                    <p>
+                        一开始 PA5 上电后的空闲态处理不对，第一次握手容易失败。后续把端口初始输出调整为高电平，
+                        直接保证总线空闲态正确，不再把“第一次失败”当成预热步骤去规避问题。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">05</span>
+                    <h3>OLED 数值显示错位和错值</h3>
+                    <p>
+                        之前既出现过小数传参错误，也出现过温度数字页地址写错、数字字模与页写法不匹配的问题。
+                        后来统一改成“整数乘 10 加小数位”的传值方式，并重写 8x16 数字字模和显示函数，显示结果才稳定下来。
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="notes">
+            <div class="section-heading">
+                <p class="eyebrow">CONCEPT NOTES</p>
+                <h2>知识点补充</h2>
+                <p>这次项目之外，还顺手把几类常见 STM32 外设接口的使用场景和区别做了一次集中梳理。</p>
+            </div>
+
+            <div class="architecture-grid">
+                <article class="panel architecture-card">
+                    <span class="architecture-id">01</span>
+                    <h3>UART</h3>
+                    <p>适合调试打印、模块通信和上位机收发，优点是使用简单、定位问题直观，缺点是点对点通信能力有限。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">02</span>
+                    <h3>I2C</h3>
+                    <p>适合挂接 OLED、EEPROM、环境传感器等低速外设，只用两根线就能接多个设备，但速率和时序容错一般。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">03</span>
+                    <h3>SPI</h3>
+                    <p>适合高速全双工通信，比如高速屏、Flash 或高速转换器，优点是速度高，代价是引脚占用更多、片选管理更复杂。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">04</span>
+                    <h3>ADC</h3>
+                    <p>用于采集模拟量，比如光敏电阻、电位器、电池电压等，把连续电压信号转换成 MCU 可处理的数字量。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">05</span>
+                    <h3>PWM</h3>
+                    <p>适合输出可调占空比波形，常见于电机调速、舵机控制、LED 调光和蜂鸣器发声等场景。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">06</span>
+                    <h3>DMA</h3>
+                    <p>适合大批量数据搬运，常与 UART、SPI、ADC 配合使用，能减少 CPU 轮询负担，提高实时性和吞吐量。</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>STM32 DHT11 OLED UART / SMALL PROJECT DETAIL</p>
+    </footer>
+</body>
+</html>
