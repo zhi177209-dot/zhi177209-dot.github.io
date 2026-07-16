@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="STM32F103C8T6 串口协议温湿度采集系统项目详情页，展示 UART 自定义协议、DHT11 采集、OLED 显示与错误帧处理。">
+    <title>STM32F103C8T6 串口协议温湿度采集系统 | Small Project Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-noise"></div>
+    <div class="page-grid"></div>
+
+    <header class="site-header">
+        <a class="brand" href="small-projects.html#small-projects-board">
+            <span class="brand-mark"></span>
+            <span class="brand-text">
+                <strong>HYGRO//LAB</strong>
+                <small>Small Project Detail</small>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="小项目详情导航">
+            <a href="small-projects.html#small-projects-board">返回小项目看板</a>
+            <a href="#project-intro">项目简介</a>
+            <a href="#protocol">协议设计</a>
+            <a href="#simulation">演示视频</a>
+            <a href="#code-showcase">核心代码</a>
+            <a href="#troubleshooting">问题总结</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero section-shell" id="project-top">
+            <div class="hero-copy panel">
+                <p class="eyebrow">STM32F103C8T6 / UART PROTOCOL LAB</p>
+                <h1>串口协议温湿度采集系统</h1>
+                <p class="hero-text">
+                    这个小项目的重点不是单纯读取一次 DHT11，而是练习从上位机发送协议帧、STM32 接收拆包、
+                    校验命令、执行业务、返回结果与错误码的完整链路。串口命令触发后，系统会读取温湿度数据，
+                    通过 USART1 返回 ASCII 文本，并同步刷新 OLED 显示。
+                </p>
+
+                <div class="hero-tags">
+                    <span>STM32F103C8T6</span>
+                    <span>UART Protocol</span>
+                    <span>DHT11</span>
+                    <span>OLED I2C</span>
+                    <span>HAL Library</span>
+                </div>
+
+                <div class="hero-actions">
+                    <a class="primary-link" href="#project-intro">ENTER PROJECT</a>
+                    <a class="secondary-link" href="#simulation">VIEW DEMO</a>
+                </div>
+            </div>
+
+            <aside class="telemetry-stack">
+                <div class="panel live-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">PROTOCOL STATUS</span>
+                        <span class="panel-code">AA-CMD / EE-ERR</span>
+                    </div>
+
+                    <div class="live-chip">
+                        <span class="live-dot"></span>
+                        <span>RECEIVE TO IDLE + PARSER LOOP</span>
+                    </div>
+
+                    <ul class="signal-list">
+                        <li><span>UART</span><strong>USART1 / 115200 8N1</strong></li>
+                        <li><span>Command Frame</span><strong>AA + LEN + DATA + SUM</strong></li>
+                        <li><span>Error Frame</span><strong>EE + 04 + ERR + SUM</strong></li>
+                    </ul>
+                </div>
+
+                <div class="telemetry-grid">
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">COMMANDS</span>
+                            <span class="panel-code">0x01-0x03</span>
+                        </div>
+
+                        <ul class="signal-list">
+                            <li><span>0x01</span><strong>Read DHT11</strong></li>
+                            <li><span>0x02</span><strong>OLED Clear</strong></li>
+                            <li><span>0x03</span><strong>Return Last Data</strong></li>
+                        </ul>
+                    </article>
+
+                    <article class="panel data-panel">
+                        <div class="panel-head">
+                            <span class="panel-title">ERRORS</span>
+                            <span class="panel-code">ERR.C</span>
+                        </div>
+
+                        <ul class="signal-list">
+                            <li><span>0x01</span><strong>Timeout</strong></li>
+                            <li><span>0x02</span><strong>Checksum</strong></li>
+                            <li><span>0x04</span><strong>Invalid Length</strong></li>
+                            <li><span>0x05</span><strong>Unknown Command</strong></li>
+                        </ul>
+                    </article>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section-shell" id="project-intro">
+            <div class="section-heading">
+                <p class="eyebrow">PROJECT OVERVIEW</p>
+                <h2>项目简介</h2>
+                <p>
+                    上位机通过串口发送协议命令，STM32 接收并解析命令，然后控制 DHT11 采集温湿度数据，
+                    同时把结果通过串口返回，并显示在 OLED 屏幕上。项目把“串口通信”和“传感器采集”串成了一个可验证的小闭环。
+                </p>
+            </div>
+
+            <div class="intro-layout">
+                <article class="panel intro-copy">
+                    <h3>系统说明</h3>
+                    <p>
+                        工程使用 STM32F103C8T6。USART1 负责上位机通信，波特率为 <code>115200</code>，PA9 为 TX，
+                        PA10 为 RX；OLED 使用 I2C1，对应 PB6 和 PB7；DHT11 数据线连接 PA5。为了让 DHT11 的单总线时序更稳定，
+                        程序使用 TIM1 构造微秒级延时。
+                    </p>
+                    <p>
+                        程序上电后先初始化 GPIO、I2C1、TIM1、USART1 和 OLED，然后开启串口空闲中断接收。
+                        收到数据后，中断回调只负责把原始字节写入环形缓冲区；主循环再调用协议解析函数，
+                        根据解析状态执行读取、清屏、返回缓存数据或错误处理。
+                    </p>
+                </article>
+
+                <div class="architecture-grid">
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">01</span>
+                        <h3>串口接收</h3>
+                        <p>使用 <code>HAL_UARTEx_ReceiveToIdle_IT()</code> 实现空闲中断接收，避免主循环阻塞等待串口数据。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">02</span>
+                        <h3>协议解析</h3>
+                        <p><code>command.c</code> 维护环形缓冲区，并按帧头、长度、校验和拆出有效业务数据。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">03</span>
+                        <h3>业务执行</h3>
+                        <p><code>main.c</code> 使用 <code>switch(command[0])</code> 一帧只执行一个命令，后续字节可作为参数扩展。</p>
+                    </article>
+
+                    <article class="panel architecture-card">
+                        <span class="architecture-id">04</span>
+                        <h3>错误反馈</h3>
+                        <p><code>err.c</code> 统一返回 <code>EE</code> 开头的错误帧，并通过日志文本辅助定位问题。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-shell" id="protocol">
+            <div class="section-heading">
+                <p class="eyebrow">UART FRAME DESIGN</p>
+                <h2>串口协议设计</h2>
+                <p>
+                    协议采用“帧头 + 总长度 + 业务数据 + 累加校验”的结构。正常命令帧以 <code>AA</code> 开头，
+                    错误返回帧以 <code>EE</code> 开头，便于串口助手中快速区分请求和异常反馈。
+                </p>
+            </div>
+
+            <div class="architecture-grid">
+                <article class="panel architecture-card">
+                    <span class="architecture-id">AA</span>
+                    <h3>正常命令帧</h3>
+                    <p>
+                        结构为 <code>AA LEN DATA SUM</code>。其中 <code>LEN</code> 是整帧长度，
+                        <code>DATA</code> 的第一个字节作为命令码，<code>SUM</code> 是前面所有字节的累加和。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">01</span>
+                    <h3>读取温湿度</h3>
+                    <p><code>AA 04 01 AF</code> 触发 DHT11 采集。成功后串口返回 Humidity 与 Temperature 文本，OLED 同步显示。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">02</span>
+                    <h3>清空 OLED</h3>
+                    <p><code>AA 04 02 B0</code> 执行 OLED 清屏，适合演示上位机通过协议控制本地显示模块。</p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">03</span>
+                    <h3>返回缓存数据</h3>
+                    <p><code>AA 04 03 B1</code> 不重新采集传感器，直接返回上一次保存的 DHT11 数据。</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="simulation">
+            <div class="section-heading">
+                <p class="eyebrow">RESULT SHOWCASE</p>
+                <h2>演示视频</h2>
+                <p>下面的视频展示了通过串口发送协议命令后，STM32 执行温湿度采集、串口返回和 OLED 刷新的成果。</p>
+            </div>
+
+            <div class="simulation-layout">
+                <figure class="panel simulation-frame">
+                    <video controls preload="metadata">
+                        <source src="assets/uart-xieyi.mp4" type="video/mp4">
+                        你的浏览器暂不支持视频播放，请直接打开视频文件查看。
+                    </video>
+                    <figcaption>演示重点：串口助手发送十六进制命令，STM32 按协议拆包执行，并把温湿度数据返回到串口和 OLED。</figcaption>
+                </figure>
+
+                <aside class="panel simulation-aside">
+                    <div class="panel-head">
+                        <span class="panel-title">DEMO NOTES</span>
+                        <span class="panel-code">UART-XIEYI.MP4</span>
+                    </div>
+
+                    <p>
+                        视频中可以重点观察三条链路：第一，上位机发送 <code>AA</code> 开头的命令帧；
+                        第二，STM32 根据命令码执行读取、清屏或返回缓存数据；第三，当帧长度、校验或命令码异常时，
+                        系统会通过统一错误帧和日志输出辅助调试。
+                    </p>
+
+                    <ul class="simulation-points">
+                        <li><code>AA 04 01 AF</code>：读取 DHT11 并刷新 OLED</li>
+                        <li><code>AA 04 02 B0</code>：清空 OLED 显示</li>
+                        <li><code>AA 04 03 B1</code>：返回上一次温湿度缓存</li>
+                        <li><code>AA 04 01 00</code>：演示校验错误返回</li>
+                    </ul>
+
+                    <a class="sim-button" href="assets/uart-xieyi.mp4" target="_blank" rel="noreferrer">
+                        <span>OPEN VIDEO FILE</span>
+                    </a>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section-shell" id="code-showcase">
+            <div class="section-heading">
+                <p class="eyebrow">CORE SOURCE</p>
+                <h2>核心代码展示</h2>
+                <p>
+                    这里保留三组最能解释项目闭环的真实代码：主循环业务分发、协议解析器和错误帧返回。
+                    它们分别对应“收到什么”“怎么判断有效”“异常怎么反馈”。
+                </p>
+            </div>
+
+            <div class="code-grid">
+                <article class="code-window wide">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/main.c</span>
+                    </div>
+                    <pre><code><span class="token type">void</span> <span class="token function">HAL_UARTEx_RxEventCallback</span>(UART_HandleTypeDef *huart, <span class="token type">uint16_t</span> Size)
+{
+    <span class="token keyword">if</span> (huart == &amp;huart1) {
+        <span class="token function">Command_Write</span>(readBuffer, Size);
+        <span class="token function">HAL_UARTEx_ReceiveToIdle_IT</span>(&amp;huart1, readBuffer, <span class="token keyword">sizeof</span>(readBuffer));
+    }
+}
+
+<span class="token keyword">while</span> (<span class="token number">1</span>)
+{
+    <span class="token type">uint8_t</span> command[<span class="token number">50</span>];
+    <span class="token type">uint8_t</span> commandLength = <span class="token number">0</span>;
+    CommandStatus_t status = <span class="token function">Command_GetCommand</span>(command, &amp;commandLength);
+
+    <span class="token keyword">switch</span> (status) {
+    <span class="token keyword">case</span> CMD_OK:
+        <span class="token keyword">switch</span> (command[<span class="token number">0</span>]) {
+        <span class="token keyword">case</span> <span class="token number">0x01</span>:
+            <span class="token function">Log_Print</span>(<span class="token string">"[CMD] Read DHT11\r\n"</span>);
+            <span class="token keyword">if</span> (<span class="token function">DHT11_ReadData</span>(&amp;DHT11_Data)) {
+                <span class="token function">snprintf</span>(message, <span class="token keyword">sizeof</span>(message),
+                    <span class="token string">"Humidity:%d.%d%% Temperature:%d.%dC\r\n"</span>,
+                    DHT11_Data.humi_int, DHT11_Data.humi_deci,
+                    DHT11_Data.temp_int, DHT11_Data.temp_deci);
+                <span class="token function">HAL_UART_Transmit</span>(&amp;huart1, (<span class="token type">uint8_t</span> *)message, len, <span class="token number">1000</span>);
+                <span class="token function">OLED_Clear</span>();
+                <span class="token comment">// OLED 显示“湿度”和“温度”以及数值</span>
+            } <span class="token keyword">else</span> {
+                <span class="token function">Send_Error</span>(ERR_SENSOR_FAIL);
+            }
+            <span class="token keyword">break</span>;
+
+        <span class="token keyword">case</span> <span class="token number">0x02</span>:
+            <span class="token function">OLED_Clear</span>();
+            <span class="token keyword">break</span>;
+
+        <span class="token keyword">case</span> <span class="token number">0x03</span>:
+            <span class="token comment">// 直接返回上一次 DHT11 数据</span>
+            <span class="token keyword">break</span>;
+        }
+        <span class="token keyword">break</span>;
+    }
+}</code></pre>
+                </article>
+
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/command.c</span>
+                    </div>
+                    <pre><code><span class="token keyword">#define</span> FRAME_HEAD1 <span class="token number">0xAA</span>
+<span class="token keyword">#define</span> COMMAND_TIMEOUT_MS <span class="token number">1000</span>
+
+CommandStatus_t <span class="token function">Command_GetCommand</span>(<span class="token type">uint8_t</span> *command, <span class="token type">uint8_t</span> *commandLength)
+{
+    <span class="token keyword">static</span> <span class="token type">uint32_t</span> frameStartTick = <span class="token number">0</span>;
+    <span class="token type">uint8_t</span> bufferLength = <span class="token function">Command_GetLength</span>();
+
+    <span class="token keyword">if</span> (bufferLength == <span class="token number">0</span>) {
+        frameStartTick = <span class="token number">0</span>;
+        <span class="token keyword">return</span> CMD_NONE;
+    }
+
+    <span class="token keyword">if</span> (<span class="token function">Command_Read</span>(readIndex) != FRAME_HEAD1) {
+        <span class="token function">Command_AddReadIndex</span>(<span class="token number">1</span>);
+        <span class="token keyword">return</span> CMD_ERR_HEAD;
+    }
+
+    <span class="token type">uint8_t</span> length = <span class="token function">Command_Read</span>(readIndex + <span class="token number">1</span>);
+    <span class="token keyword">if</span> (length &lt; COMMAND_MIN_LENGTH || length &gt; PACK_BUF_MAX) {
+        <span class="token function">Command_AddReadIndex</span>(<span class="token number">1</span>);
+        <span class="token keyword">return</span> CMD_ERR_LENGTH;
+    }
+
+    <span class="token keyword">if</span> (bufferLength &lt; length) {
+        <span class="token keyword">if</span> (<span class="token function">HAL_GetTick</span>() - frameStartTick &gt; COMMAND_TIMEOUT_MS) {
+            <span class="token function">Command_AddReadIndex</span>(<span class="token number">1</span>);
+            <span class="token keyword">return</span> CMD_ERR_TIMEOUT;
+        }
+        <span class="token keyword">return</span> CMD_NONE;
+    }
+
+    <span class="token type">uint8_t</span> sum = <span class="token number">0</span>;
+    <span class="token keyword">for</span> (<span class="token type">uint8_t</span> i = <span class="token number">0</span>; i &lt; length - <span class="token number">1</span>; i++) {
+        sum += <span class="token function">Command_Read</span>(readIndex + i);
+    }
+
+    <span class="token keyword">if</span> (sum != <span class="token function">Command_Read</span>(readIndex + length - <span class="token number">1</span>)) {
+        <span class="token function">Command_AddReadIndex</span>(length);
+        <span class="token keyword">return</span> CMD_ERR_CHECKSUM;
+    }
+}</code></pre>
+                </article>
+
+                <article class="code-window">
+                    <div class="window-bar">
+                        <span class="window-dots">
+                            <i></i><i></i><i></i>
+                        </span>
+                        <span class="window-title">Core/Src/err.c</span>
+                    </div>
+                    <pre><code><span class="token keyword">#define</span> ERR_TIMEOUT         <span class="token number">0x01</span>
+<span class="token keyword">#define</span> ERR_CHECKSUM        <span class="token number">0x02</span>
+<span class="token keyword">#define</span> ERR_INVALID_LENGTH  <span class="token number">0x04</span>
+<span class="token keyword">#define</span> ERR_UNKNOWN_CMD     <span class="token number">0x05</span>
+<span class="token keyword">#define</span> ERR_SENSOR_FAIL     <span class="token number">0x06</span>
+
+<span class="token type">void</span> <span class="token function">Send_Error</span>(<span class="token type">uint8_t</span> err)
+{
+    <span class="token type">uint8_t</span> frame[<span class="token number">4</span>];
+
+    frame[<span class="token number">0</span>] = <span class="token number">0xEE</span>;
+    frame[<span class="token number">1</span>] = <span class="token number">0x04</span>;
+    frame[<span class="token number">2</span>] = err;
+    frame[<span class="token number">3</span>] = frame[<span class="token number">0</span>] + frame[<span class="token number">1</span>] + frame[<span class="token number">2</span>];
+
+    <span class="token function">HAL_UART_Transmit</span>(&amp;huart1, frame, <span class="token number">4</span>, <span class="token number">1000</span>);
+}
+
+<span class="token type">void</span> <span class="token function">Log_Print</span>(<span class="token type">char</span> *msg)
+{
+    <span class="token type">uint16_t</span> len = <span class="token function">strlen</span>(msg);
+    <span class="token function">HAL_UART_Transmit</span>(&amp;huart1, (<span class="token type">uint8_t</span> *)msg, len, <span class="token number">1000</span>);
+}</code></pre>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="troubleshooting">
+            <div class="section-heading">
+                <p class="eyebrow">DEBUG NOTES</p>
+                <h2>问题与解决方式</h2>
+                <p>
+                    这部分整理自你的 <code>program.docx</code>。它记录了这个串口协议项目从“能跑”
+                    到“能识别异常、能定位问题”的调试过程。
+                </p>
+            </div>
+
+            <div class="architecture-grid">
+                <article class="panel architecture-card">
+                    <span class="architecture-id">01</span>
+                    <h3>接收数据被重新封包</h3>
+                    <p>
+                        早期 <code>Command_Write()</code> 会把串口收到的数据再次调用封包函数，导致解析器校验的是自己重新封好的帧，
+                        不是上位机发来的原始帧。后来改为只把原始字节写入环形缓冲区。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">02</span>
+                    <h3>执行 02 时 01 又被执行</h3>
+                    <p>
+                        原因是主循环遍历了整个 50 字节数组，上一帧残留的 <code>0x01</code> 又被扫描到。
+                        最终改成 <code>switch(command[0])</code>，保证一帧只执行一个命令。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">03</span>
+                    <h3>串口中文乱码</h3>
+                    <p>
+                        数字正常但中文乱码，说明波特率没问题，主要是编码不统一。当前输出改成英文 ASCII：
+                        <code>Humidity:%d.%d%% Temperature:%d.%dC</code>，更适合串口助手稳定显示。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">04</span>
+                    <h3>DHT11 采集失败</h3>
+                    <p>
+                        通过检查 PA5、VCC/GND、数据线上拉和上电稳定时间定位问题。程序中加入上电稳定延时，
+                        并用 TIM1 保证微秒级时序后，复位后的读取更稳定。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">05</span>
+                    <h3>校验错误后非法帧头刷屏</h3>
+                    <p>
+                        校验失败后如果只丢 1 字节，坏帧剩余字节会继续触发非法帧头。修正为校验失败时丢弃整包：
+                        <code>Command_AddReadIndex(length)</code>。
+                    </p>
+                </article>
+
+                <article class="panel architecture-card">
+                    <span class="architecture-id">06</span>
+                    <h3>长度错误与超时错误区分</h3>
+                    <p>
+                        <code>AA 03 01 AF</code> 属于长度字段非法，因为小于最小帧长 4；
+                        <code>AA 06 01 AF</code> 属于长度合法但数据没收够，所以返回超时错误。
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-shell" id="notes">
+            <div class="section-heading">
+                <p class="eyebrow">CONCEPT NOTES</p>
+                <h2>知识点补充</h2>
+                <p>这个小项目最值得保留的学习点，是把串口协议从“直接收字节”推进到了“帧结构、状态码和错误恢复”。</p>
+            </div>
+
+            <div class="about-layout">
+                <article class="about-card panel">
+                    <h3>协议解析的基本顺序</h3>
+                    <ul class="simulation-points">
+                        <li>先找帧头：不是 <code>AA</code> 就丢 1 字节继续同步。</li>
+                        <li>再读长度：长度小于最小帧长或超过缓存上限，立即报长度错误。</li>
+                        <li>等待完整帧：长度合法但数据没收够，超过 1 秒后报超时。</li>
+                        <li>最后校验和：校验失败丢弃整包，避免剩余字节继续污染解析器。</li>
+                        <li>业务分发：解析成功后只把业务数据交给 <code>switch(command[0])</code>。</li>
+                    </ul>
+                </article>
+
+                <div class="about-side-grid">
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">01</span>
+                        <h3>中断接收</h3>
+                        <p>串口中断负责接住原始字节，不在中断里做复杂业务，主循环再解析和执行。</p>
+                    </article>
+
+                    <article class="panel mini-info-card">
+                        <span class="architecture-id">02</span>
+                        <h3>错误帧</h3>
+                        <p>统一错误返回能让上位机快速判断问题类型，比只打印文字日志更适合协议化通信。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>STM32 UART PROTOCOL DHT11 OLED / SMALL PROJECT DETAIL</p>
+    </footer>
+</body>
+</html>
